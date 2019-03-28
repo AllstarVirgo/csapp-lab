@@ -46,6 +46,59 @@ void trans(int M, int N, int A[N][M], int B[M][N])
 
 }
 
+char trans_faster[] = "A faster trans function";
+void transfaster(int M, int N, int A[N][M], int B[M][N]){
+    int bsize = 32/sizeof(int);
+    int enM = (M/bsize);
+    int enN = (N/bsize);
+    int i,j,ii,jj,temp1,temp,dif;
+
+    /*transfer every sub block in A*/
+
+    for(i=0;i<enN*bsize;i+=bsize)
+        for(j=0;j<enM*bsize;j+=bsize){
+            for(ii=i;ii<i+bsize;ii++){
+                for(jj=j;jj<j+bsize;jj++){
+                    if((ii-i)==(jj-j))
+                        continue;
+                    else if((jj-j)>(ii-i)){
+                        temp = A[ii][jj];
+                        unsigned int tx = jj-j;
+                        unsigned int ty = ii+i;
+                        temp1=A[tx][ty];
+                        A[tx][ty]=temp;
+                        A[ii][jj]=temp1;
+                    }
+                }
+            }            
+        }       
+
+    /*trans A int to B*/
+    for(i=0;i<enN*bsize;i+=bsize)
+        for(j=0;j<enM*bsize;j+=bsize){
+            for(ii=i;ii<i+bsize;ii++)
+                for(jj=j;jj<j+bsize;jj++){
+                    if(i==j){
+                        B[ii][jj]=A[ii][jj];
+                    }else if(j>i){
+                        dif = j-i; 
+                        B[ii+bsize*dif][jj-bsize*dif]=A[ii][jj];
+                    }else{
+                        dif = i-j;
+                        B[ii-bsize*dif][jj+bsize*dif]=A[ii][jj];
+                    }
+
+                }
+        }
+
+    for(i=enM*bsize;i<M;i++)
+        for(j=0;j<N;j++)
+            B[j][i]=A[i][j];
+
+    for(i=0;i<M;i++)
+        for(j=enN*bsize;j<N;j++)
+            B[j][i]=A[i][j];
+}
 /*
  * registerFunctions - This function registers your transpose
  *     functions with the driver.  At runtime, the driver will
@@ -57,6 +110,7 @@ void registerFunctions()
 {
     /* Register your solution function */
     registerTransFunction(transpose_submit, transpose_submit_desc); 
+    registerTransFunction(transfaster, trans_faster); 
 
     /* Register any additional transpose functions */
     registerTransFunction(trans, trans_desc); 
